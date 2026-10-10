@@ -1,0 +1,15 @@
+﻿{
+    "name":  "replace_file_content",
+    "args":  {
+                 "AllowMultiple":  false,
+                 "Description":  "Fix imports for dynamic data loading",
+                 "EndLine":  10,
+                 "Instruction":  "Replace lines 2-10",
+                 "ReplacementContent":  "import React from \"react\";\nimport Image from \"next/image\";\nimport { ProductCard } from \"../components/ProductCard\";\nimport confetti from \"canvas-confetti\";\nimport { fetchCsvData } from \"../utils/fetchData\";\nimport { transformProducts, transformFaqs, transformSpecs, transformBattery } from \"../utils/dataTransformers\";\nimport { products as fallbackProducts, Product } from \"../data/productData\";\nimport { faqData as fallbackFaqData, FAQ } from \"../data/faqData\";\nimport { specDetails as fallbackSpecDetails } from \"../data/specData\";\nimport { batteryData as fallbackBatteryData } from \"../data/batteryData\";",
+                 "StartLine":  2,
+                 "TargetContent":  "import { faqData } from \"../data/faqData\";\n\nimport React from \"react\";\nimport Image from \"next/image\";\nimport { products } from \"../data/productData\";\nimport { specDetails } from \"../data/specData\";\nimport { batteryData } from \"../data/batteryData\";\nimport { ProductCard } from \"../components/ProductCard\";\nimport confetti from \"canvas-confetti\";",
+                 "TargetFile":  "c:\\Users\\taerin\\Desktop\\buyxtron\\web\\src\\app\\page.tsx",
+                 "toolAction":  "Fixing imports in page.tsx",
+                 "toolSummary":  "Fix imports"
+             }
+}
