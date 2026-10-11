@@ -5,7 +5,15 @@ import Image from "next/image";
 
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/image";
 
-export const EventSummaryCards = () => {
+interface EventSummaryCardsProps {
+  onSelectTab?: (tab: string) => void;
+  onOpenAccModal?: () => void;
+}
+
+export const EventSummaryCards: React.FC<EventSummaryCardsProps> = ({
+  onSelectTab,
+  onOpenAccModal,
+}) => {
   const cards = [
     {
       id: "limited-edition",
@@ -45,9 +53,27 @@ export const EventSummaryCards = () => {
   ];
 
   const handleCardClick = (id: string) => {
-    // 임시 스크롤 액션
-    const el = document.getElementById("pricing");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (id === "limited-edition") {
+      if (onSelectTab) onSelectTab("newArrival");
+      else {
+        const el = document.getElementById("pricing");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else if (id === "mega-upgrade") {
+      if (onSelectTab) onSelectTab("megaweek");
+      else {
+        const el = document.getElementById("pricing");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else if (id === "acc-promo") {
+      if (onOpenAccModal) onOpenAccModal();
+    } else if (id === "mega-single") {
+      if (onSelectTab) onSelectTab("acc");
+      else {
+        const el = document.getElementById("pricing");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   };
 
   return (

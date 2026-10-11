@@ -68,18 +68,45 @@ export default function Home() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  // Modals
+  const [giftModalOpen, setGiftModalOpen] = useState(false);
+  const [accModalOpen, setAccModalOpen] = useState(false);
+  const openGiftModal = () => setGiftModalOpen(true);
+  const closeGiftModal = () => setGiftModalOpen(false);
+  const openAccModal = () => setAccModalOpen(true);
+  const closeAccModal = () => setAccModalOpen(false);
+
+  // Floating CTA & Banner visibility on scroll
+  const [isFloatingVisible, setIsFloatingVisible] = useState(true);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const pricingSection = document.getElementById('pricing');
+      if (pricingSection) {
+        const triggerPoint = pricingSection.offsetTop - window.innerHeight + 150;
+        if (window.scrollY >= triggerPoint) {
+          setIsFloatingVisible(false);
+        } else {
+          setIsFloatingVisible(true);
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const scrollToPricingAndTab = (tab: string) => {
     setActiveTab(tab);
     const el = document.getElementById('pricing');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-  const openAccModal = () => {
-    console.log("Opened Access Modal");
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
     <>
-      <EventPopup />
+      <EventPopup onAction={() => scrollToPricingAndTab('megaweek')} />
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505] pt-24 pb-24">
         
         {/* Background Glow */}
@@ -146,14 +173,17 @@ export default function Home() {
             </div>
 
             <div className="mt-16 w-full">
-              <EventSummaryCards />
+              <EventSummaryCards 
+                onSelectTab={scrollToPricingAndTab} 
+                onOpenAccModal={openAccModal} 
+              />
             </div>
             
           </div>
         </div>
       </section>
 
-<>\n{/* 02. EVENT Section */}
+{/* 02. EVENT Section */}
 <section className="py-24 bg-[#0a0a0a] relative border-t border-gray-900">
 <div className="container mx-auto px-6">
 <div className="text-center mb-16">
@@ -1680,18 +1710,25 @@ export default function Home() {
 </div>
 </footer>
 {/* 🚀 상시 노출 구매하기 플로팅 버튼 */}
-<div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 w-[90%] max-w-[340px] md:max-w-none md:w-auto pointer-events-none transition-all duration-500 opacity-100 translate-y-0" id="floating-cta">
-{/* 💡 onclick 이벤트 추가 및 href 속성 수정 */}
-<a className="pointer-events-auto flex items-center justify-center w-full px-8 md:px-10 py-3.5 md:py-4 bg-gradient-to-r from-brand-green to-brand-blue text-white font-extrabold text-base sm:text-lg md:text-xl rounded-full animate-cta-pulse hover:opacity-90 transition-all shadow-[0_0_20px_rgba(114,191,68,0.4)]" href="javascript:void(0);" onClick={() => {}} /* scrollToPricingAndTab('newArrival') */>
+<div className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 w-[90%] max-w-[340px] md:max-w-none md:w-auto transition-all duration-500 ${
+  isFloatingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
+}`} id="floating-cta">
+<a className={`flex items-center justify-center w-full px-8 md:px-10 py-3.5 md:py-4 bg-gradient-to-r from-brand-green to-brand-blue text-white font-extrabold text-base sm:text-lg md:text-xl rounded-full animate-cta-pulse hover:opacity-90 transition-all shadow-[0_0_20px_rgba(114,191,68,0.4)] ${
+  isFloatingVisible ? 'pointer-events-auto' : 'pointer-events-none'
+}`} href="#pricing" onClick={(e) => {
+  e.preventDefault();
+  scrollToPricingAndTab('newArrival');
+}}>
 <span className="flex items-center gap-2 tracking-wide">
                 한정판 구매하기 <i className="ph-bold ph-shopping-cart text-xl sm:text-2xl"></i>
 </span>
 </a>
 </div>
-{/* 👇 [수정] 모바일/PC 모두 중앙 하단 스택형 플로팅 팝업 👇 */}
-<div className="fixed bottom-[84px] md:bottom-[96px] left-1/2 transform -translate-x-1/2 z-40 w-[90%] max-w-[340px] md:max-w-none md:w-auto transition-all duration-500 opacity-100 translate-y-0" id="floating-city-banner">
-{/* 💡 [수정] 목적지를 'megaweek'로 변경 */}
-<button className="w-full bg-[#111111] border border-brand-green/40 shadow-[0_0_20px_rgba(114,191,68,0.4)] rounded-full py-2.5 px-4 md:py-3 md:px-6 flex items-center justify-between gap-4 hover:bg-gray-800 transition-colors group cursor-pointer" onClick={() => {}} /* scrollToPricingAndTab('megaweek') */ type="button">
+{/* 👇 모바일/PC 모두 중앙 하단 스택형 플로팅 팝업 👇 */}
+<div className={`fixed bottom-[84px] md:bottom-[96px] left-1/2 transform -translate-x-1/2 z-40 w-[90%] max-w-[340px] md:max-w-none md:w-auto transition-all duration-500 ${
+  isFloatingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
+}`} id="floating-city-banner">
+<button className="w-full bg-[#111111] border border-brand-green/40 shadow-[0_0_20px_rgba(114,191,68,0.4)] rounded-full py-2.5 px-4 md:py-3 md:px-6 flex items-center justify-between gap-4 hover:bg-gray-800 transition-colors group cursor-pointer" onClick={() => scrollToPricingAndTab('megaweek')} type="button">
 <div className="flex items-center gap-2.5 md:gap-4">
 {/* 아이콘 */}
 <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-green/10 rounded-full flex items-center justify-center shrink-0">
@@ -1709,14 +1746,14 @@ export default function Home() {
 </div>
 </button>
 </div>
-{/* 🎁 [신규 추가] 사은품 반값 할인 카카오톡 문의 팝업 */}
-<div className="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4 sm:p-6" id="gift-modal">
+{/* 🎁 사은품 반값 할인 카카오톡 문의 팝업 */}
+<div className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-opacity duration-300 ${giftModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} id="gift-modal">
 {/* 팝업 바깥쪽 어두운 배경 (클릭 시 닫힘) */}
-<div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => {}} /* closeGiftModal() */></div>
+<div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeGiftModal}></div>
 {/* 팝업 본체 */}
-<div className="relative bg-[#0a0a0a] border border-gray-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col z-10" id="gift-modal-content">
+<div className={`relative bg-[#0a0a0a] border border-gray-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl transition-transform duration-300 flex flex-col z-10 ${giftModalOpen ? 'scale-100' : 'scale-95'}`} id="gift-modal-content">
 {/* 닫기 버튼 */}
-<button className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors bg-black/50 rounded-full p-1" onClick={() => {}} /* closeGiftModal() */>
+<button className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors bg-black/50 rounded-full p-1" onClick={closeGiftModal}>
 <i className="ph ph-x text-2xl"></i>
 </button>
 {/* 텍스트 내용 */}
@@ -1728,7 +1765,7 @@ export default function Home() {
 <p className="text-gray-400 text-sm md:text-base break-keep leading-relaxed mb-5">
                     배달 가방 또는 ZOOM SP442 중 <br/><strong className="text-white">미선택하신 품목은 50% 반값 할인가</strong>에 <br/>추가 구매가 가능합니다. <br/><br/>결제를 원하시면 아래 버튼을 눌러 <br/>카카오톡 채널로 문의해 주세요!
                 </p>
-{/* 🚨 [신규 추가] 구매 확인 필수 경고 문구 */}
+{/* 🚨 구매 확인 필수 경고 문구 */}
 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-left flex items-start gap-2 shadow-inner">
 <i className="ph-fill ph-warning-circle text-red-500 text-lg mt-0.5 shrink-0"></i>
 <p className="text-red-400 text-xs sm:text-sm font-medium break-keep leading-snug">
@@ -1737,20 +1774,20 @@ export default function Home() {
                     </p>
 </div>
 </div>
-{/* 카카오톡 연동 버튼 (링크 수정 필요) */}
+{/* 카카오톡 연동 버튼 */}
 <a className="w-full flex items-center justify-center gap-2 bg-[#FEE500] hover:bg-[#FADA0A] text-[#191919] font-bold text-sm sm:text-base py-3.5 rounded-xl transition-colors shadow-lg" href="https://buyxtron.com/kakao_link" target="_blank">
 <i className="ph-fill ph-chat-circle text-xl"></i> 카카오톡으로 문의하기
             </a>
 </div>
 </div>
 {/* 🎁 액세서리 특가 가격 안내 팝업 */}
-<div className="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4 sm:p-6" id="acc-modal">
+<div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 transition-opacity duration-300 ${accModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} id="acc-modal">
 {/* 팝업 바깥쪽 어두운 배경 (클릭 시 닫힘) */}
-<div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => {}} /* closeAccModal() */></div>
+<div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeAccModal}></div>
 {/* 팝업 본체 */}
-<div className="relative bg-[#0a0a0a] border border-[#05e5f9]/30 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-[0_0_40px_rgba(5,229,249,0.2)] transform scale-95 transition-transform duration-300 flex flex-col z-10" id="acc-modal-content">
+<div className={`relative bg-[#0a0a0a] border border-[#05e5f9]/30 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-[0_0_40px_rgba(5,229,249,0.2)] transition-transform duration-300 flex flex-col z-10 ${accModalOpen ? 'scale-100' : 'scale-95'}`} id="acc-modal-content">
 {/* 닫기 버튼 */}
-<button className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors bg-black/50 rounded-full p-1" onClick={() => {}} /* closeAccModal() */>
+<button className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors bg-black/50 rounded-full p-1" onClick={closeAccModal}>
 <i className="ph ph-x text-2xl"></i>
 </button>
 {/* 타이틀 */}
@@ -1819,7 +1856,6 @@ export default function Home() {
 )}
 </div>
 </div>
-    </>
     </>
   );
 }

@@ -4,7 +4,11 @@ import React, { useState, useEffect } from "react";
 
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/image";
 
-export const EventPopup = () => {
+interface EventPopupProps {
+  onAction?: () => void;
+}
+
+export const EventPopup: React.FC<EventPopupProps> = ({ onAction }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -27,16 +31,26 @@ export const EventPopup = () => {
     setIsOpen(false);
   };
 
+  const handleBannerClick = () => {
+    handleClose();
+    if (onAction) {
+      onAction();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4">
       <div className="relative bg-[#111] border border-gray-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        <div className="relative w-full aspect-[4/5] bg-gray-900 flex items-center justify-center">
+        <div 
+          onClick={handleBannerClick}
+          className="relative w-full aspect-[4/5] bg-gray-900 flex items-center justify-center cursor-pointer group"
+        >
           <img
             src={`${IMAGE_BASE_URL}/EVENT/MEGA_DAY_TITLE.webp`}
             alt="Event Popup"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
           />
         </div>
         
