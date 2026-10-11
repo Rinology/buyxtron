@@ -8,6 +8,7 @@ import { specDetails } from "../data/specData";
 import { faqData } from "../data/faqData";
 import { EventSummaryCards } from "../components/EventSummaryCards";
 import { EventPopup } from "../components/EventPopup";
+import { batteryData } from "../data/batteryData";
 
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/image";
 
@@ -17,6 +18,45 @@ export default function Home() {
   const [selectedSpec, setSelectedSpec] = useState<any>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [noticeOpen, setNoticeOpen] = useState(true);
+
+  // Battery Technology Toggle State
+  const [selectedBattery, setSelectedBattery] = useState<"standard" | "mega">("standard");
+  const [animatedKm, setAnimatedKm] = useState<number>(154.9);
+  const [showcaseOpacity, setShowcaseOpacity] = useState<boolean>(true);
+
+  React.useEffect(() => {
+    const targetKm = batteryData[selectedBattery].km;
+    const startKm = animatedKm;
+    const duration = 800;
+    let startTimestamp: number | null = null;
+    let animId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 4);
+      const currentVal = Number((easeProgress * (targetKm - startKm) + startKm).toFixed(1));
+      setAnimatedKm(currentVal);
+      if (progress < 1) {
+        animId = requestAnimationFrame(step);
+      } else {
+        setAnimatedKm(targetKm);
+      }
+    };
+    animId = requestAnimationFrame(step);
+
+    setShowcaseOpacity(false);
+    const timer = setTimeout(() => {
+      setShowcaseOpacity(true);
+    }, 200);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      clearTimeout(timer);
+    };
+  }, [selectedBattery]);
+
+  const currentBattery = batteryData[selectedBattery];
 
   const openSpecModal = (specId: string) => {
     setSelectedSpec((specDetails as any)[specId]);
@@ -585,19 +625,27 @@ export default function Home() {
 <h2 className="text-3xl md:text-5xl font-bold mb-6">
                         한계를 넘는 주행거리,<br/>당신의 선택은?
                     </h2>
-<p className="text-base md:text-lg text-gray-400 h-24 md:h-12 transition-all duration-300 font-normal break-keep" id="battery-desc">
-                        출퇴근과 주말 레저를 완벽하게 커버. 타사 최고가 모델에서나 볼 법한 대용량이 엑스트론에서는 '기본'입니다.
+<p className="text-base md:text-lg text-gray-400 h-24 md:h-12 transition-all duration-300 font-normal break-keep whitespace-pre-line" id="battery-desc">
+                        {currentBattery.desc}
                     </p>
 </div>
 <div className="flex justify-center mb-12">
 <div className="bg-gray-900 p-1 rounded-full inline-flex relative w-full sm:w-auto max-w-sm">
 {/* 모바일 최적화: 버튼 너비 조정 */}
-<div className="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-brand-blue rounded-full transition-all duration-300 ease-in-out" id="toggle-bg">
+<div className={`absolute top-1 h-[calc(100%-8px)] rounded-full transition-all duration-300 ease-in-out ${
+  selectedBattery === 'standard'
+    ? 'left-1 w-[calc(50%-4px)] bg-brand-blue'
+    : 'left-[calc(50%+0px)] w-[calc(50%-4px)] bg-brand-green'
+}`} id="toggle-bg">
 </div>
-<button className="relative z-10 px-2 sm:px-4 py-3 rounded-full text-white font-medium transition-colors w-1/2 sm:w-48 md:w-56 text-xs sm:text-sm md:text-base flex items-center justify-center gap-1" id="btn-std" onClick={() => {}} /* setBattery('standard') */>
+<button className={`relative z-10 px-2 sm:px-4 py-3 rounded-full font-medium transition-colors w-1/2 sm:w-48 md:w-56 text-xs sm:text-sm md:text-base flex items-center justify-center gap-1 ${
+  selectedBattery === 'standard' ? 'text-white' : 'text-gray-400'
+}`} id="btn-std" onClick={() => setSelectedBattery('standard')}>
                             48V 20Ah
                         </button>
-<button className="relative z-10 px-2 sm:px-4 py-3 rounded-full text-gray-400 font-medium transition-colors w-1/2 sm:w-48 md:w-56 text-xs sm:text-sm md:text-base flex items-center justify-center gap-1 sm:gap-1.5" id="btn-mega" onClick={() => {}} /* setBattery('mega') */>
+<button className={`relative z-10 px-2 sm:px-4 py-3 rounded-full font-medium transition-colors w-1/2 sm:w-48 md:w-56 text-xs sm:text-sm md:text-base flex items-center justify-center gap-1 sm:gap-1.5 ${
+  selectedBattery === 'mega' ? 'text-white' : 'text-gray-400'
+}`} id="btn-mega" onClick={() => setSelectedBattery('mega')}>
                             48V 28.5Ah <img alt="MEGA" className="h-2.5 sm:h-3 md:h-4 object-contain opacity-80 group-hover:opacity-100 transition-opacity" src={`${IMAGE_BASE_URL}/BATTERY_LOGO_SET/MEGA_LOGO.png`}/>
 </button>
 </div>
@@ -607,9 +655,14 @@ export default function Home() {
 <div className="flex justify-between items-end mb-4">
 <div>
 <div className="text-xs sm:text-sm text-gray-500 mb-2 font-normal flex items-center gap-1.5" id="cell-spec">
-                                Powered by. <img alt="삼성 SDI" className="h-3 md:h-4 object-contain opacity-80" src={`${IMAGE_BASE_URL}/BATTERY_LOGO_SET/SAMSUNG-SDI.png`}/>
+                                Powered by. <img alt={currentBattery.cellAlt} className="h-3 md:h-4 object-contain opacity-80" src={`${IMAGE_BASE_URL}${currentBattery.cellImg.replace('/image', '')}`}/>
 </div>
-<h3 className="text-xl sm:text-2xl md:text-4xl font-semibold flex items-center gap-2" id="ah-spec">48V 20Ah</h3>
+<h3 className="text-xl sm:text-2xl md:text-4xl font-semibold flex items-center gap-2" id="ah-spec">
+  {currentBattery.ah}
+  {selectedBattery === 'mega' && (
+    <img alt="MEGA" className="h-4 sm:h-5 md:h-8 object-contain" src={`${IMAGE_BASE_URL}/BATTERY_LOGO_SET/MEGA_LOGO.png`}/>
+  )}
+</h3>
 </div>
 <div className="text-right">
 <p className="text-xs sm:text-sm text-gray-500 mb-1 font-normal hidden sm:block">*엑스트론 프로S, PAS
@@ -617,13 +670,15 @@ export default function Home() {
                                 주행거리</p>
 <p className="text-[10px] text-gray-500 mb-1 font-normal sm:hidden">최대 주행거리</p>
 <div className="flex items-baseline justify-end gap-1">
-<span className="text-4xl md:text-6xl font-bold text-brand-blue transition-all duration-500" id="km-text">154.9</span>
+<span className={`text-4xl md:text-6xl font-bold transition-all duration-500 ${currentBattery.textColor}`} id="km-text">
+  {animatedKm.toFixed(1)}
+</span>
 <span className="text-lg sm:text-xl text-gray-400 font-medium">km</span>
 </div>
 </div>
 </div>
 <div className="w-full bg-gray-800 h-6 sm:h-8 rounded-full overflow-hidden p-1">
-<div className="h-full rounded-full bg-brand-blue gauge-transition relative overflow-hidden" id="range-bar" style={{}} /* width: 60%; */>
+<div className={`h-full rounded-full gauge-transition relative overflow-hidden ${currentBattery.colorClass}`} id="range-bar" style={{ width: currentBattery.width }}>
 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGwyMCAyMEgwaC0yMHoiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+')] opacity-20">
 </div>
 </div>
@@ -636,14 +691,26 @@ export default function Home() {
 </div>
 </div>
 {/* 배터리 상세 쇼케이스 영역 */}
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 transition-opacity duration-300 opacity-100" id="battery-showcase">
+<div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 transition-opacity duration-300 ${showcaseOpacity ? 'opacity-100' : 'opacity-0'}`} id="battery-showcase">
 <div className="relative rounded-3xl overflow-hidden aspect-video lg:aspect-[4/3] border border-gray-800 bg-[#111] shadow-2xl group">
 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 pointer-events-none">
 </div>
-<img className="w-full h-full object-cover absolute inset-0 z-0 group-hover:scale-105 transition-transform duration-700" id="battery-img" src="https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&amp;fit=crop&amp;w=800&amp;q=80"/>
+<img className="w-full h-full object-cover absolute inset-0 z-0 group-hover:scale-105 transition-transform duration-700" id="battery-img" alt={currentBattery.ah} src={`${IMAGE_BASE_URL}${currentBattery.imgSrc.replace('/image', '')}`}/>
 </div>
 <div className="flex flex-col justify-center space-y-3" id="battery-features">
-{/* JS를 통해 동적 렌더링 됨 */}
+  {currentBattery.features.map((f, idx) => (
+    <div key={idx} className="bg-gray-900/40 border border-gray-800 rounded-2xl p-4 sm:p-5 transition-all duration-300">
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 border border-gray-700 bg-gray-800">
+          <i className={`ph-fill ${f.icon} text-xl sm:text-2xl ${selectedBattery === 'mega' ? 'text-brand-green' : 'text-brand-blue'}`}></i>
+        </div>
+        <div>
+          <h4 className="text-white font-medium text-sm sm:text-base mb-1.5">{f.title}</h4>
+          <p className="text-gray-400 text-xs sm:text-sm font-normal leading-relaxed break-keep" dangerouslySetInnerHTML={{ __html: f.desc }} />
+        </div>
+      </div>
+    </div>
+  ))}
 </div>
 </div>
 {/* 라이프스타일 맞춤 배터리 선택 가이드 */}
@@ -767,7 +834,6 @@ export default function Home() {
 <table className="w-full text-left border-collapse min-w-full md:min-w-[800px]">
 <thead>
 <tr className="bg-gray-900 border-b border-gray-800">
-<tr className="bg-gray-900 border-b border-gray-800">
 <th className="p-5 font-medium text-gray-400 w-[20%] whitespace-nowrap">구분</th>
 {/* 📱 모바일에서만 보이는 26년 NEW 엑스트론 (앞쪽 배치) */}
 <th className="p-4 sm:p-6 font-bold text-brand-green w-[40%] text-center border-x border-t border-brand-green/50 bg-brand-green/20 text-base sm:text-lg md:text-xl shadow-[0_-5px_20px_rgba(114,191,68,0.15)] relative break-keep table-cell md:hidden">
@@ -786,7 +852,7 @@ export default function Home() {
 <span className="relative z-10">26년 NEW 엑스트론</span>
 </th>
 </tr>
-</tr></thead>
+</thead>
 <tbody>
 <tr className="border-b border-gray-800 hover:bg-white/5 transition-colors">
 <td className="p-5 font-medium text-gray-300 bg-gray-900/30 whitespace-nowrap">프레임</td>
@@ -1297,9 +1363,9 @@ export default function Home() {
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 프로모션 및 사은품 관련 유의사항이 있나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 0 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 0 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1317,13 +1383,13 @@ export default function Home() {
 </div>
 {/* FAQ 14: 메가 배터리 구매 및 호환 유의사항 */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700 mt-4 border-l-4 border-l-[#c0fb0c]">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(1)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-[#c0fb0c] font-bold text-lg md:text-xl">Q.</span> 메가 배터리 단품 구매 시, 기존 자전거와 호환이 되나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 1 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 1 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-[#c0fb0c] font-bold text-lg md:text-xl">A.</span>
@@ -1345,14 +1411,14 @@ export default function Home() {
 <div className="space-y-4">
 {/* FAQ 1: 결제 */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(2)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 무이자 24개월 할부는 어떻게
                             적용되나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 2 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 2 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1366,13 +1432,13 @@ export default function Home() {
 </div>
 {/* FAQ 2: 배송 방법 */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(3)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 배송은 어떻게 받을 수 있나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 3 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 3 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1388,13 +1454,13 @@ export default function Home() {
 </div>
 {/* FAQ 3: 사은품 배송 */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(4)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 사은품은 자전거와 함께 배송되나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 4 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 4 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1408,13 +1474,13 @@ export default function Home() {
 </div>
 {/* FAQ 4: 법적 요건 (면허) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(5)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 운전 면허가 있어야 하나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 5 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 5 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1431,13 +1497,13 @@ export default function Home() {
 </div>
 {/* FAQ 5: 법적 요건 (자전거도로) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(6)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 자전거 전용 도로 주행이 가능한가요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 6 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 6 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1451,13 +1517,13 @@ export default function Home() {
 </div>
 {/* FAQ 6: 안전 (배터리) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(7)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 배터리는 안전한가요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 7 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 7 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1471,14 +1537,14 @@ export default function Home() {
 </div>
 {/* FAQ 7: 실용성 (여성 주행) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(8)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 여자가 타도 무겁거나 부담스럽지
                             않을까요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 8 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 8 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1493,13 +1559,13 @@ export default function Home() {
 </div>
 {/* FAQ 8: 실용성 (유아 동승) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(9)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 뒷자리에 아이를 태울 수 있나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 9 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 9 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1515,14 +1581,14 @@ export default function Home() {
 </div>
 {/* FAQ 9: 실용성 (배터리 관리) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(10)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 배터리만 따로 분리해서 충전할 수
                             있나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 10 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 10 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1536,14 +1602,14 @@ export default function Home() {
 </div>
 {/* FAQ 10: 사후 관리 (A/S) */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(11)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> 무상 보증(A/S)은 어떻게 받을 수
                             있나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 11 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 11 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1558,13 +1624,13 @@ export default function Home() {
 </div>
 {/* FAQ 7: ZOOM SP442 장착 가이드 */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700 mt-4">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(12)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> ZOOM SP442 서스펜션 싯포스트는 어떻게 장착하나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 12 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 12 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>
@@ -1580,13 +1646,13 @@ export default function Home() {
 </div>
 {/* FAQ 8: OGK 유아 안장 장착 가이드 */}
 <div className="border border-gray-800 rounded-2xl bg-[#0a0a0a] overflow-hidden transition-colors hover:border-gray-700 mt-4">
-<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(0)}>
+<button className="faq-btn w-full px-5 md:px-8 py-5 text-left flex justify-between items-center focus:outline-none group" onClick={() => toggleFaq(13)}>
 <span className="faq-title font-medium text-gray-200 text-sm md:text-base flex items-center gap-3 transition-colors group-hover:text-white">
 <span className="text-brand-green font-bold text-lg md:text-xl">Q.</span> OGK 유아 안장은 어떻게 장착하나요?
                         </span>
-<i className="ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4"></i>
+<i className={`ph ph-caret-down text-gray-500 text-xl faq-icon transition-transform duration-300 group-hover:text-white ml-4 ${openFaqIndex === 13 ? 'rotate-180 text-white' : ''}`}></i>
 </button>
-<div className="faq-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8">
+<div className={`faq-content overflow-hidden transition-all duration-300 ease-in-out px-5 md:px-8 ${openFaqIndex === 13 ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
 <div className="pb-6 pt-1">
 <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 flex items-start gap-3">
 <span className="text-brand-blue font-bold text-lg md:text-xl">A.</span>

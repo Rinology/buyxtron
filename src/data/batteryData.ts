@@ -1,7 +1,7 @@
 export const batteryData = {
     standard: {
         desc: "출퇴근과 주말 레저를 완벽하게 커버. \n타사 최고가 모델에서나 볼 법한 대용량이 엑스트론에서는 '기본'입니다.",
-        cellImg: "/image/BATTEY_LOGO_SET/SAMSUNG-SDI.png",
+        cellImg: "/image/BATTERY_LOGO_SET/SAMSUNG-SDI.png",
         cellAlt: "삼성 SDI",
         ah: "48V 20Ah",
         km: 154.9,
@@ -17,7 +17,7 @@ export const batteryData = {
     },
     mega: {
         desc: "모두가 20Ah에 머물 때, Xtron은 28.5Ah로 나아갑니다. \n42% 용량 증가가 선사하는 멈추지 않는 라이딩!",
-        cellImg: "/image/BATTEY_LOGO_SET/LG-Energy-Solution.png",
+        cellImg: "/image/BATTERY_LOGO_SET/LG-Energy-Solution.png",
         cellAlt: "LG Energy Solution",
         ah: "48V 28.5Ah",
         megaIcon: true,
