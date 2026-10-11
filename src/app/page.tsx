@@ -58,6 +58,16 @@ export default function Home() {
 
   const currentBattery = batteryData[selectedBattery];
 
+  // Spec Slider State (완벽한 라이딩을 위한 프리미엄 기본기)
+  const [currentSpecSlide, setCurrentSpecSlide] = useState(0);
+  const specModelNames = ["허브모터 라인업", "미드모터 라인업"];
+  const moveSpecSlide = (dir: number) => {
+    let newSlide = currentSpecSlide + dir;
+    if (newSlide < 0) newSlide = 1;
+    if (newSlide >= 2) newSlide = 0;
+    setCurrentSpecSlide(newSlide);
+  };
+
   const openSpecModal = (specId: string) => {
     setSelectedSpec((specDetails as any)[specId]);
     setSpecModalOpen(true);
@@ -1046,23 +1056,40 @@ export default function Home() {
 <div className="relative max-w-5xl mx-auto hidden md:block aspect-video rounded-3xl border border-gray-800 bg-[#111111] overflow-hidden">
 <div className="absolute top-6 left-6 z-30 flex flex-col gap-2 pointer-events-none">
 <div className="inline-block bg-gray-900/80 backdrop-blur-md border border-gray-700 px-5 py-2 rounded-2xl shadow-lg w-max">
-<span className="text-brand-green font-bold tracking-wider" id="spec-model-name">허브모터 라인업</span>
+<span className="text-brand-green font-bold tracking-wider" id="spec-model-name">
+  {specModelNames[currentSpecSlide]}
+</span>
 </div>
 <div className="flex flex-wrap gap-1.5 pl-1 opacity-90" id="spec-applicable-models">
-{/* JS로 동적 렌더링 */}
+  {currentSpecSlide === 0 ? (
+    <>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">프로</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">프로미니</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">GT</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">GT미니</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">시티</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">투어</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">미니</span>
+    </>
+  ) : (
+    <>
+      <span className="bg-brand-green/20 backdrop-blur-sm border border-brand-green/30 text-brand-green text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">프로 S</span>
+      <span className="bg-brand-green/20 backdrop-blur-sm border border-brand-green/30 text-brand-green text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">GT S</span>
+    </>
+  )}
 </div>
 </div>
-<button className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 hover:bg-brand-green text-white rounded-full flex items-center justify-center transition-colors z-30 shadow-lg border border-gray-700 pointer-events-auto" onClick={() => {}} /* moveSpecSlide(-1) */>
+<button className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 hover:bg-brand-green text-white rounded-full flex items-center justify-center transition-colors z-30 shadow-lg border border-gray-700 pointer-events-auto" onClick={() => moveSpecSlide(-1)} type="button">
 <i className="ph ph-caret-left text-2xl"></i>
 </button>
-<button className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 hover:bg-brand-green text-white rounded-full flex items-center justify-center transition-colors z-30 shadow-lg border border-gray-700 pointer-events-auto" onClick={() => {}} /* moveSpecSlide(1) */>
+<button className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 hover:bg-brand-green text-white rounded-full flex items-center justify-center transition-colors z-30 shadow-lg border border-gray-700 pointer-events-auto" onClick={() => moveSpecSlide(1)} type="button">
 <i className="ph ph-caret-right text-2xl"></i>
 </button>
 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-<button className="spec-dot w-3 h-3 rounded-full bg-brand-green transition-colors" onClick={() => {}} /* setSpecSlide(0) */></button>
-<button className="spec-dot w-3 h-3 rounded-full bg-gray-600 hover:bg-gray-400 transition-colors" onClick={() => {}} /* setSpecSlide(1) */></button>
+<button className={`spec-dot w-3 h-3 rounded-full transition-colors ${currentSpecSlide === 0 ? 'bg-brand-green' : 'bg-gray-600 hover:bg-gray-400'}`} onClick={() => setCurrentSpecSlide(0)} type="button"></button>
+<button className={`spec-dot w-3 h-3 rounded-full transition-colors ${currentSpecSlide === 1 ? 'bg-brand-green' : 'bg-gray-600 hover:bg-gray-400'}`} onClick={() => setCurrentSpecSlide(1)} type="button"></button>
 </div>
-<div className="flex w-full h-full transition-transform duration-700 ease-in-out" id="spec-slider">
+<div className="flex w-full h-full transition-transform duration-700 ease-in-out" id="spec-slider" style={{ transform: `translateX(-${currentSpecSlide * 100}%)` }}>
 {/* SLIDE 1 */}
 <div className="w-full h-full shrink-0 relative bg-gray-white">
 <img alt="XTRON 허브모터 모델" className="w-full h-full object-cover opacity-90" src={`${IMAGE_BASE_URL}/PREVIEW_PRODUCT/PREVIEW_PRO.png`}/>
@@ -1294,18 +1321,33 @@ export default function Home() {
 {/* 모바일용 모델 탭 & 그리드 */}
 <div className="md:hidden mt-8">
 <div className="flex justify-center gap-4 mb-4 border-b border-gray-800">
-<button className="mobile-spec-tab px-4 py-2 text-sm font-medium border-b-2 border-brand-green text-brand-green transition-colors" onClick={() => {}} /* setSpecSlide(0) */>허브모터
+<button className={`mobile-spec-tab px-4 py-2 text-sm font-medium border-b-2 transition-colors ${currentSpecSlide === 0 ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500'}`} onClick={() => setCurrentSpecSlide(0)} type="button">허브모터
                             라인업</button>
-<button className="mobile-spec-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 transition-colors" onClick={() => {}} /* setSpecSlide(1) */>미드모터
+<button className={`mobile-spec-tab px-4 py-2 text-sm font-medium border-b-2 transition-colors ${currentSpecSlide === 1 ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500'}`} onClick={() => setCurrentSpecSlide(1)} type="button">미드모터
                             라인업</button>
 </div>
 <div className="flex flex-wrap justify-center gap-1.5 mb-6 px-4" id="mobile-spec-applicable-models">
-{/* JS로 동적 렌더링 */}
+  {currentSpecSlide === 0 ? (
+    <>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">프로</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">프로미니</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">GT</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">GT미니</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">시티</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">투어</span>
+      <span className="bg-white/10 backdrop-blur-sm border border-white/20 text-gray-300 text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">미니</span>
+    </>
+  ) : (
+    <>
+      <span className="bg-brand-green/20 backdrop-blur-sm border border-brand-green/30 text-brand-green text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">프로 S</span>
+      <span className="bg-brand-green/20 backdrop-blur-sm border border-brand-green/30 text-brand-green text-[10px] sm:text-[11px] px-2 sm:px-2.5 py-1 rounded-md font-medium tracking-wide">GT S</span>
+    </>
+  )}
 </div>
 <div className="grid grid-cols-2 gap-3 px-4">
-<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-lcd-btn" onClick={() => openSpecModal('lcd')}>
+<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-lcd-btn" onClick={() => openSpecModal(currentSpecSlide === 0 ? 'lcd' : 'ananda_lcd')}>
 <i className="ph ph-monitor text-2xl text-brand-green mb-2"></i>
-<h4 className="font-medium text-sm mb-1">LCD 컬러 계기판</h4>
+<h4 className="font-medium text-sm mb-1">{currentSpecSlide === 0 ? "LCD 컬러 계기판" : "아난다 전용 계기판"}</h4>
 <p className="text-[11px] text-gray-400 font-normal">자세히 보기 <i className="ph ph-caret-right inline"></i></p>
 </div>
 <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" onClick={() => openSpecModal('brake')}>
@@ -1328,19 +1370,19 @@ export default function Home() {
 <h4 className="font-medium text-sm mb-1">프론트 서스펜션</h4>
 <p className="text-[11px] text-gray-400 font-normal">자세히 보기 <i className="ph ph-caret-right inline"></i></p>
 </div>
-<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-wheel-btn" onClick={() => openSpecModal('wheel')}>
+<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-wheel-btn" onClick={() => openSpecModal(currentSpecSlide === 0 ? 'wheel' : 'spoke_wheel')}>
 <i className="ph ph-circle-dashed text-2xl text-brand-green mb-2"></i>
-<h4 className="font-medium text-sm mb-1">마그네슘 합금 휠</h4>
+<h4 className="font-medium text-sm mb-1">{currentSpecSlide === 0 ? "마그네슘 합금 휠" : "스포크 휠"}</h4>
 <p className="text-[11px] text-gray-400 font-normal">자세히 보기 <i className="ph ph-caret-right inline"></i></p>
 </div>
-<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-motor-btn" onClick={() => openSpecModal('motor')}>
+<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-motor-btn" onClick={() => openSpecModal(currentSpecSlide === 0 ? 'motor' : 'mid_motor')}>
 <i className="ph ph-engine text-2xl text-brand-green mb-2"></i>
-<h4 className="font-medium text-sm mb-1">정격 500W 허브 모터</h4>
+<h4 className="font-medium text-sm mb-1">{currentSpecSlide === 0 ? "48V 정격 500W 허브모터" : "아난다 미드 모터 (130N.m)"}</h4>
 <p className="text-[11px] text-gray-400 font-normal">자세히 보기 <i className="ph ph-caret-right inline"></i></p>
 </div>
-<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-gear-btn" onClick={() => openSpecModal('gear_7')}>
+<div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 cursor-pointer active:bg-gray-800" id="mobile-gear-btn" onClick={() => openSpecModal(currentSpecSlide === 0 ? 'gear_7' : 'gear_9')}>
 <i className="ph ph-gear text-2xl text-brand-green mb-2"></i>
-<h4 className="font-medium text-sm mb-1">시마노 7단 기어</h4>
+<h4 className="font-medium text-sm mb-1">{currentSpecSlide === 0 ? "시마노 7단 기어" : "시마노 소라 9단 기어"}</h4>
 <p className="text-[11px] text-gray-400 font-normal">자세히 보기 <i className="ph ph-caret-right inline"></i></p>
 </div>
 </div>
